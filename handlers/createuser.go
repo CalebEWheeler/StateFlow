@@ -8,10 +8,9 @@ import (
 
 type CreateUserRequest struct {
 	Body struct {
-		FirstName string `json:"firstName" example:"John" doc:"First Name"`
-		LastName  string `json:"lastName" example:"Smith" doc:"Last Name"`
-		Email     string `json:"email" example:"johnsmith@gmail.com" doc:"Email"`
-		Password  string `json:"password" example:"" doc:"Password"`
+		FirstName string `json:"firstName" required:"true" example:"John" minLength:"2" maxLength:"50" doc:"First name"`
+		LastName  string `json:"lastName" required:"true" example:"Smith" minLength:"2" maxLength:"50" doc:"Last name"`
+		Email     string `json:"email" required:"true" example:"johnsmith@gmail.com" format:"email" doc:"Email address"`
 	}
 }
 
@@ -20,7 +19,6 @@ type User struct {
 	FirstName string `json:"firstName"`
 	LastName  string `json:"lastName"`
 	Email     string `json:"email"`
-	Password  string `json:"password"`
 }
 
 type CreateUserOutput struct {
@@ -38,7 +36,6 @@ func NewCreateUserHandler(ctx context.Context, input *CreateUserRequest) (*Creat
 		FirstName: input.Body.FirstName,
 		LastName:  input.Body.LastName,
 		Email:     input.Body.Email,
-		Password:  input.Body.Password,
 	}
 	resp.Body.Message = msg
 	return resp, nil
