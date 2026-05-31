@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/google/uuid"
 )
@@ -23,20 +24,23 @@ type User struct {
 
 type CreateUserOutput struct {
 	Body struct {
-		Message User
-		Success bool
+		ID     string `json:"id"`
+		Email  string `json:"email"`
+		Status string `json:"status"`
 	}
 }
 
 func NewCreateUserHandler(ctx context.Context, input *CreateUserRequest) (*CreateUserOutput, error) {
-	resp := &CreateUserOutput{}
-	resp.Body.Success = true
-	msg := User{
+	usr := User{
 		ID:        uuid.New().String(),
 		FirstName: input.Body.FirstName,
 		LastName:  input.Body.LastName,
 		Email:     input.Body.Email,
 	}
-	resp.Body.Message = msg
+	fmt.Printf("sending user data to postgres... \n%+v", usr)
+	resp := &CreateUserOutput{}
+	resp.Body.ID = usr.ID
+	resp.Body.Email = usr.Email
+	resp.Body.Status = "created"
 	return resp, nil
 }
