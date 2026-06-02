@@ -13,14 +13,23 @@ import (
 )
 
 func main() {
-	connections.New(context.Background(), "postgres://postgres:example@localhost:5432/stateflow")
+	// Can move URL to env var
+	conn, err := connections.New(context.Background(), "postgres://postgres:example@localhost:5432/stateflow")
+	if err != nil {
+		panic(err)
+	}
+	conn.Pool.Exec(context.Background(), "CREATE TABLE IF NOT EXISTS users (id uuid PRIMARY KEY NOT NULL, first_name VARCHAR(50) NOT NULL, last_name VARCHAR(50) NOT NULL, email VARCHAR(255) UNIQUE NOT NULL);")
 
 	router := chi.NewMux()
 	config := huma.DefaultConfig("My API", "1.0.0")
 	config.RejectUnknownQueryParameters = true
 	api := humachi.New(router, config)
 
-	huma.Register(api, operations.CreateUser, handlers.NewCreateUserHandler)
+	hs := handlers.Handlers{
+		CreateUserHandler: handlers.NewCreateUserHandler(conn),
+	}
+
+	huma.Register(api, operations.CreateUser, hs.CreateUserHandler.Handle)
 	huma.Register(api, operations.CreateBilling, handlers.NewCreateBillingHandler)
 	huma.Register(api, operations.SendEmail, handlers.NewSendEmailHandler)
 

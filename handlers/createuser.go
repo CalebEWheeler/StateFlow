@@ -4,8 +4,13 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/CalebEWheeler/StateFlow/connections"
 	"github.com/google/uuid"
 )
+
+type CreateUserHandler struct {
+	db *connections.DB
+}
 
 type CreateUserRequest struct {
 	Body struct {
@@ -13,13 +18,6 @@ type CreateUserRequest struct {
 		LastName  string `json:"lastName" required:"true" example:"Smith" minLength:"2" maxLength:"50" doc:"Last name"`
 		Email     string `json:"email" required:"true" example:"johnsmith@gmail.com" format:"email" doc:"Email address"`
 	}
-}
-
-type User struct {
-	ID        string `json:"id"`
-	FirstName string `json:"firstName"`
-	LastName  string `json:"lastName"`
-	Email     string `json:"email"`
 }
 
 type CreateUserOutput struct {
@@ -30,17 +28,25 @@ type CreateUserOutput struct {
 	}
 }
 
-func NewCreateUserHandler(ctx context.Context, input *CreateUserRequest) (*CreateUserOutput, error) {
-	usr := User{
-		ID:        uuid.New().String(),
-		FirstName: input.Body.FirstName,
-		LastName:  input.Body.LastName,
-		Email:     input.Body.Email,
+// NewCreateUserHandler initializes a new CreateUserHandler with injected dependencies (e.g., database connection)
+func NewCreateUserHandler(conn *connections.DB) *CreateUserHandler {
+	return &CreateUserHandler{
+		db: conn,
 	}
-	fmt.Printf("sending user data to postgres... \n%+v", usr)
+}
+
+func (h *CreateUserHandler) Handle(ctx context.Context, input *CreateUserRequest) (*CreateUserOutput, error) {
+	uuid := uuid.New().String()
+	fmt.Printf("sending user data to postgres...\n")
+	if _, err := h.db.Pool.Exec(ctx, "INSERT INTO users (id, first_name, last_name, email) VALUES($1, $2, $3, $4)", uuid, input.Body.FirstName, input.Body.LastName, input.Body.Email); err != nil {
+		// Returning the error and letting Huma handle the response. In a production application, you might want to wrap this error in a custom error type or add more context.
+		return nil, fmt.Errorf("insert user: %w", err)
+	} else {
+		fmt.Printf("user data stored in postgres...\n")
+	}
 	resp := &CreateUserOutput{}
-	resp.Body.ID = usr.ID
-	resp.Body.Email = usr.Email
+	resp.Body.ID = uuid
+	resp.Body.Email = input.Body.Email
 	resp.Body.Status = "created"
 	return resp, nil
 }
