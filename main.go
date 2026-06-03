@@ -18,6 +18,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	conn.Pool.Exec(context.Background(), "CREATE TABLE IF NOT EXISTS workflows (id UUID PRIMARY KEY, status )")
 	conn.Pool.Exec(context.Background(), "CREATE TABLE IF NOT EXISTS users (id uuid PRIMARY KEY NOT NULL, first_name VARCHAR(50) NOT NULL, last_name VARCHAR(50) NOT NULL, email VARCHAR(255) UNIQUE NOT NULL);")
 
 	router := chi.NewMux()
@@ -25,13 +26,16 @@ func main() {
 	config.RejectUnknownQueryParameters = true
 	api := humachi.New(router, config)
 
+	// Initialize handlers with database connection
 	hs := handlers.Handlers{
-		CreateUserHandler: handlers.NewCreateUserHandler(conn),
+		CreateUserHandler:    handlers.NewCreateUserHandler(conn),
+		CreateBillingHandler: handlers.NewCreateBillingHandler(conn),
+		SendEmailHandler:     handlers.NewSendEmailHandler(conn),
 	}
 
 	huma.Register(api, operations.CreateUser, hs.CreateUserHandler.Handle)
-	huma.Register(api, operations.CreateBilling, handlers.NewCreateBillingHandler)
-	huma.Register(api, operations.SendEmail, handlers.NewSendEmailHandler)
+	huma.Register(api, operations.CreateBilling, hs.CreateBillingHandler.Handle)
+	huma.Register(api, operations.SendEmail, hs.SendEmailHandler.Handle)
 
 	http.ListenAndServe("127.0.0.1:8080", router)
 }
