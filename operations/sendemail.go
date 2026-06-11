@@ -7,10 +7,11 @@ import (
 )
 
 var SendEmail = huma.Operation{
-	Description: "Send an email to the created user",
-	Method:      http.MethodPost,
-	OperationID: "send-email",
-	Path:        "/send/email",
-	Summary:     "Send Email",
-	Tags:        []string{"Send Email"},
+	Description:   "Send an email to the created user",
+	Method:        http.MethodPost,
+	OperationID:   "send-email",
+	Path:          "/email",
+	Summary:       "Send Email",
+	Tags:          []string{"Send Email"},
+	DefaultStatus: 200,
 }

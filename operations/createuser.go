@@ -7,10 +7,11 @@ import (
 )
 
 var CreateUser = huma.Operation{
-	Description: "Create a new platform user",
-	Method:      http.MethodPost,
-	OperationID: "create-user",
-	Path:        "/create/user",
-	Summary:     "Create user",
-	Tags:        []string{"Create User"},
+	Description:   "Create a new platform user",
+	Method:        http.MethodPost,
+	OperationID:   "create-user",
+	Path:          "/user",
+	Summary:       "Create user",
+	Tags:          []string{"Create User"},
+	DefaultStatus: 200,
 }

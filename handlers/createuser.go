@@ -20,12 +20,14 @@ type CreateUserRequest struct {
 	}
 }
 
+type OutputBody struct {
+	ID     string `json:"id"`
+	Email  string `json:"email"`
+	Status string `json:"status"`
+}
+
 type CreateUserOutput struct {
-	Body struct {
-		ID     string `json:"id"`
-		Email  string `json:"email"`
-		Status string `json:"status"`
-	}
+	Body OutputBody
 }
 
 // NewCreateUserHandler initializes a new CreateUserHandler with injected dependencies (e.g., database connection)
