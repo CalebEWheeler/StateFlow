@@ -11,16 +11,16 @@ type WorkflowStore struct {
 	pool *pgxpool.Pool
 }
 
+func NewWorkflowStore(pool *pgxpool.Pool) *WorkflowStore {
+	return &WorkflowStore{pool: pool}
+}
+
 type Workflow struct {
 	ID          string
 	Status      string `oneOf:"running,completed,failed"`
 	CurrentStep string `oneOf:"create_user,create_billing,send_email"`
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
-}
-
-func NewWorkflowStore(pool *pgxpool.Pool) *WorkflowStore {
-	return &WorkflowStore{pool: pool}
 }
 
 func (ws *WorkflowStore) CreateWorkflow(ctx context.Context, workflowID string) error {

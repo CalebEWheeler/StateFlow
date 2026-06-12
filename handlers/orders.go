@@ -11,7 +11,8 @@ import (
 )
 
 type OrderHandler struct {
-	db *connections.DB
+	db    *connections.DB
+	store *postgres.Store
 }
 
 type OrderContext struct {
@@ -59,25 +60,25 @@ type OrderRequest struct {
 
 type OrderResponse struct{}
 
-func NewOrderHandler(conn *connections.DB) *OrderHandler {
+func NewOrderHandler(conn *connections.DB, store *postgres.Store) *OrderHandler {
 	return &OrderHandler{
-		db: conn,
+		db:    conn,
+		store: store,
 	}
 }
 
 func (h *OrderHandler) Handle(ctx context.Context, input *OrderRequest) (*OrderResponse, error) {
 	workflowID := uuid.New().String()
-	workflowStore := postgres.NewWorkflowStore(h.db.Pool)
-	if err := workflowStore.CreateWorkflow(ctx, workflowID); err != nil {
+	if err := h.store.Workflow.CreateWorkflow(ctx, workflowID); err != nil {
 		return &OrderResponse{}, err
 	}
 
-	jobStore := postgres.NewJobStore(h.db.Pool)
+	// If I can migrate payload data from using json.Marshal to []bytes instead, that would improve performance...
 	payload, err := json.Marshal(input.Body)
 	if err != nil {
 		return &OrderResponse{}, err
 	}
-	jobStore.CreateJob(ctx, workflowID, payload)
+	h.store.Job.CreateJob(ctx, workflowID, payload)
 
 	return &OrderResponse{}, nil
 }

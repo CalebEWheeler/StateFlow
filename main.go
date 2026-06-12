@@ -7,17 +7,21 @@ import (
 	"github.com/CalebEWheeler/StateFlow/connections"
 	"github.com/CalebEWheeler/StateFlow/handlers"
 	"github.com/CalebEWheeler/StateFlow/operations"
+	"github.com/CalebEWheeler/StateFlow/storage/postgres"
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humachi"
 	"github.com/go-chi/chi/v5"
 )
 
 func main() {
+	// Establish connection to Postgres
 	// Can move URL to env var
 	conn, err := connections.New(context.Background(), "postgres://postgres:example@localhost:5432/stateflow")
 	if err != nil {
 		panic(err)
 	}
+
+	// TODO: move to storage/postgres package...maybe call as an initialize function that returns the store?
 	conn.Pool.Exec(context.Background(), `CREATE TABLE IF NOT EXISTS workflows
 	(
 		id UUID PRIMARY KEY, 
@@ -58,6 +62,12 @@ func main() {
 		email VARCHAR(255) UNIQUE NOT NULL
 	);`)
 
+	// Initialize Workflow and Job stores
+	// workflowStore := postgres.NewWorkflowStore(conn.Pool)
+	// jobStore := postgres.NewJobStore(conn.Pool)
+	store := postgres.NewStore(conn.Pool)
+
+	// Create Router and register endpoints with handlers...
 	router := chi.NewMux()
 	config := huma.DefaultConfig("My API", "1.0.0")
 	config.RejectUnknownQueryParameters = true
@@ -65,10 +75,7 @@ func main() {
 
 	// Initialize handlers with database connection
 	hs := handlers.Handlers{
-		CreateUserHandler:    handlers.NewCreateUserHandler(conn),
-		CreateBillingHandler: handlers.NewCreateBillingHandler(conn),
-		OrderHandler:         handlers.NewOrderHandler(conn),
-		SendEmailHandler:     handlers.NewSendEmailHandler(conn),
+		OrderHandler: handlers.NewOrderHandler(conn, store),
 	}
 
 	huma.Register(api, operations.Order, hs.OrderHandler.Handle)
