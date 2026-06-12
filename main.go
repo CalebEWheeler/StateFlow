@@ -34,6 +34,7 @@ func main() {
 		status VARCHAR(20) NOT NULL,
 		retry_count INT NOT NULL DEFAULT 0,
 		last_error TEXT,
+		payload TEXT,
 		created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 		updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 	);`)
