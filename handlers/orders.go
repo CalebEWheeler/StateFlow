@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/CalebEWheeler/StateFlow/connections"
+	"github.com/CalebEWheeler/StateFlow/shared"
 	"github.com/CalebEWheeler/StateFlow/storage/postgres"
 	"github.com/google/uuid"
 )
@@ -33,29 +34,8 @@ type Order struct {
 	UpdatedAt time.Time
 }
 
-type Address struct {
-	Street  string `json:"street"`
-	City    string `json:"city"`
-	State   string `json:"state"`
-	Country string `json:"country"`
-}
-
-type Item struct {
-	ID       string `json:"id"`
-	SKU      string `json:"sku"`
-	Quantity int    `json:"quantity"`
-}
-
-type OrderRequestBody struct {
-	CustomerID string  `json:"customer_id"`
-	Email      string  `json:"email"`
-	Address    Address `json:"address"`
-	Items      []Item  `json:"items"`
-	Currency   string  `json:"currency"`
-}
-
 type OrderRequest struct {
-	Body OrderRequestBody `json:"body"`
+	Body shared.OrderRequestBody `json:"body"`
 }
 
 type OrderResponse struct{}
