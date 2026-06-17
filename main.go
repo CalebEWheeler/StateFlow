@@ -62,10 +62,10 @@ func main() {
 		email VARCHAR(255) UNIQUE NOT NULL
 	);`)
 
-	// Initialize Workflow and Job stores
-	// workflowStore := postgres.NewWorkflowStore(conn.Pool)
-	// jobStore := postgres.NewJobStore(conn.Pool)
+	// Initialize store
 	store := postgres.NewStore(conn.Pool)
+
+	// Initialize workers...
 
 	// Create Router and register endpoints with handlers...
 	router := chi.NewMux()

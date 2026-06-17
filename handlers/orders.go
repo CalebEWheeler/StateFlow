@@ -68,7 +68,7 @@ func NewOrderHandler(conn *connections.DB, store *postgres.Store) *OrderHandler 
 }
 
 func (h *OrderHandler) Handle(ctx context.Context, input *OrderRequest) (*OrderResponse, error) {
-	workflowID := uuid.New().String()
+	workflowID := uuid.New()
 	if err := h.store.Workflow.CreateWorkflow(ctx, workflowID); err != nil {
 		return &OrderResponse{}, err
 	}

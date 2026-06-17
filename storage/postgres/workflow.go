@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -16,14 +17,14 @@ func NewWorkflowStore(pool *pgxpool.Pool) *WorkflowStore {
 }
 
 type Workflow struct {
-	ID          string
+	ID          uuid.UUID
 	Status      string `oneOf:"running,completed,failed"`
 	CurrentStep string `oneOf:"create_user,create_billing,send_email"`
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }
 
-func (ws *WorkflowStore) CreateWorkflow(ctx context.Context, workflowID string) error {
+func (ws *WorkflowStore) CreateWorkflow(ctx context.Context, workflowID uuid.UUID) error {
 	if _, err := ws.pool.Exec(ctx, `INSERT INTO workflows 
 	(
 		id,

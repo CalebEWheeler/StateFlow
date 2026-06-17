@@ -2,31 +2,37 @@ package postgres
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+var ErrNoJobs = errors.New("no pending jobs")
+
 type JobStore struct {
 	pool *pgxpool.Pool
 }
 
 type Job struct {
-	ID         string
-	WorkflowID string
-	CreatedAt  time.Time
-	Status     string `oneOf:"pending,completed,failed"`
+	ID         uuid.UUID
+	WorkflowID uuid.UUID
 	// Can add these steps as a bonus: retry_failed_job, cancel_order, reconcile_order
-	Step    string `oneOf:"create_order,reserve_inventory,charge_payment,create_shipment,send_email"`
-	Payload []byte
+	Step       string `oneOf:"create_order,reserve_inventory,charge_payment,create_shipment,send_email"`
+	Status     string `oneOf:"pending,completed,failed"`
+	RetryCount int
+	LastError  string
+	Payload    []byte
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
 }
 
 func NewJobStore(pool *pgxpool.Pool) *JobStore {
 	return &JobStore{pool: pool}
 }
 
-func (js *JobStore) CreateJob(ctx context.Context, workflowID string, payload interface{}) error {
+func (js *JobStore) CreateJob(ctx context.Context, workflowID uuid.UUID, payload interface{}) error {
 	js.pool.Exec(context.Background(), `INSERT INTO jobs (
 		id, 
 		workflow_id,
@@ -35,7 +41,7 @@ func (js *JobStore) CreateJob(ctx context.Context, workflowID string, payload in
 		payload,
 		created_at,
 		updated_at
-	) VALUES ($1, $2, $3, $4, $5, $6, $7)`, uuid.New().String(), workflowID, "create_order", "pending", payload, time.Now(), time.Now())
+	) VALUES ($1, $2, $3, $4, $5, $6, $7)`, uuid.New(), workflowID, "create_order", "pending", payload, time.Now(), time.Now())
 
 	return nil
 }
