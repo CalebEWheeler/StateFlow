@@ -63,10 +63,6 @@ func (js *JobStore) CreateJob(ctx context.Context, workflowID uuid.UUID, payload
 	return nil
 }
 
-func (js *JobStore) GetPending() bool {
-	return true
-}
-
 func (j *JobStore) ClaimNextPendingJob(ctx context.Context) (*Job, error) {
 	// Start transaction block...
 	tx, err := j.pool.Begin(ctx)
