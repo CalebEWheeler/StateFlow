@@ -8,6 +8,7 @@ import (
 	"github.com/CalebEWheeler/StateFlow/handlers"
 	"github.com/CalebEWheeler/StateFlow/operations"
 	"github.com/CalebEWheeler/StateFlow/storage/postgres"
+	"github.com/CalebEWheeler/StateFlow/workers"
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humachi"
 	"github.com/go-chi/chi/v5"
@@ -65,6 +66,8 @@ func main() {
 	store := postgres.NewStore(conn.Pool)
 
 	// Initialize workers...
+	worker := workers.NewWorker(store)
+	go worker.Start(context.Background())
 
 	// Create Router and register endpoints with handlers...
 	router := chi.NewMux()

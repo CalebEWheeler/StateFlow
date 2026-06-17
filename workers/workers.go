@@ -19,6 +19,10 @@ type Worker struct {
 	store *postgres.Store
 }
 
+func NewWorker(store *postgres.Store) *Worker {
+	return &Worker{store: store}
+}
+
 // Polls for jobs.
 // Claims jobs.
 // Hands jobs off for processing.

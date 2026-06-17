@@ -24,7 +24,7 @@ type Job struct {
 	Step       string `oneOf:"create_order,reserve_inventory,charge_payment,create_shipment,send_email"`
 	Status     string `oneOf:"pending,completed,failed"`
 	RetryCount int
-	LastError  string
+	LastError  *string
 	Payload    []byte
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
@@ -92,6 +92,11 @@ func (j *JobStore) ClaimNextPendingJob(ctx context.Context) (*Job, error) {
 			payload,
 			created_at,
 			updated_at
+		FROM jobs
+		WHERE status = 'pending'
+		ORDER BY created_at ASC
+		LIMIT 1
+		FOR UPDATE SKIP LOCKED
 	`).Scan(
 		&job.ID,
 		&job.WorkflowID,
@@ -115,7 +120,7 @@ func (j *JobStore) ClaimNextPendingJob(ctx context.Context) (*Job, error) {
 	_, err = tx.Exec(ctx, `
 	UPDATE jobs
 	SET 
-		status = 'running'
+		status = 'running',
 		updated_at = NOW()
 	WHERE id = $1
 	`, job.ID)
