@@ -38,7 +38,7 @@ func main() {
 		status VARCHAR(20) NOT NULL,
 		retry_count INT NOT NULL DEFAULT 0,
 		last_error TEXT,
-		payload TEXT,
+		payload JSONB,
 		created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 		updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 	);`)
@@ -50,7 +50,6 @@ func main() {
 		address TEXT NOT NULL,
 		items TEXT NOT NULL,
 		currency VARCHAR(10) NOT NULL,
-		status VARCHAR(20) NOT NULL,
 		created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 		updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 	);`)
