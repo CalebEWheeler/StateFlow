@@ -31,7 +31,7 @@ func (w *Worker) Start(ctx context.Context) {
 		default:
 		}
 
-		job, err := w.store.ClaimNextPendingJob(ctx)
+		job, err := w.store.Job.ClaimNextPendingJob(ctx)
 		if err != nil {
 			time.Sleep(500 * time.Millisecond)
 			continue
@@ -78,6 +78,7 @@ func (w *Worker) ProcessJob(ctx context.Context, job *postgres.Job) error {
 }
 
 func (w *Worker) CreateOrder(ctx context.Context, job *postgres.Job) error {
+
 	return nil
 }
 
