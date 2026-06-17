@@ -39,7 +39,7 @@ func (w *Worker) Start(ctx context.Context) {
 
 		err = w.ProcessJob(ctx, job)
 		if err != nil {
-			if failErr := w.store.Fail(
+			if failErr := w.store.Job.Fail(
 				ctx,
 				job.ID,
 				err,
@@ -52,9 +52,9 @@ func (w *Worker) Start(ctx context.Context) {
 			continue
 		}
 
-		err = w.store.Complete(ctx, job.ID)
+		err = w.store.Job.Complete(ctx, job.ID)
 		if err != nil {
-			if failErr := w.store.Fail(
+			if failErr := w.store.Job.Fail(
 				ctx,
 				job.ID,
 				fmt.Errorf("failed to complete job: %w", err),
