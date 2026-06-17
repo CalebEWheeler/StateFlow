@@ -39,15 +39,31 @@ func (w *Worker) Start(ctx context.Context) {
 
 		err = w.ProcessJob(ctx, job)
 		if err != nil {
-			if failErr := w.store.Fail(ctx, job.ID, err); failErr != nil {
-				log.Printf("failed to mark job failed: %v", failErr)
+			if failErr := w.store.Fail(
+				ctx,
+				job.ID,
+				err,
+			); failErr != nil {
+				log.Printf(
+					"failed to mark job failed: %v",
+					failErr,
+				)
 			}
 			continue
 		}
 
 		err = w.store.Complete(ctx, job.ID)
 		if err != nil {
-			w.store.Fail(ctx, job.ID, fmt.Errorf("failed to complete job: %s", err))
+			if failErr := w.store.Fail(
+				ctx,
+				job.ID,
+				fmt.Errorf("failed to complete job: %w", err),
+			); failErr != nil {
+				log.Printf(
+					"failed to mark job failed: %v",
+					failErr,
+				)
+			}
 		}
 	}
 }
