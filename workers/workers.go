@@ -78,7 +78,9 @@ func (w *Worker) ProcessJob(ctx context.Context, job *postgres.Job) error {
 }
 
 func (w *Worker) CreateOrder(ctx context.Context, job *postgres.Job) error {
-
+	if err := w.store.Order.CreateOrder(ctx, job); err != nil {
+		return err
+	}
 	return nil
 }
 

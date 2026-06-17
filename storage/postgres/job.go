@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -50,7 +51,7 @@ func (j *JobStore) Complete(ctx context.Context, id uuid.UUID) error {
 }
 
 func (js *JobStore) CreateJob(ctx context.Context, workflowID uuid.UUID, payload interface{}) error {
-	js.pool.Exec(context.Background(), `INSERT INTO jobs (
+	_, err := js.pool.Exec(context.Background(), `INSERT INTO jobs (
 		id, 
 		workflow_id,
 		step,
@@ -59,6 +60,10 @@ func (js *JobStore) CreateJob(ctx context.Context, workflowID uuid.UUID, payload
 		created_at,
 		updated_at
 	) VALUES ($1, $2, $3, $4, $5, $6, $7)`, uuid.New(), workflowID, "create_order", "pending", payload, time.Now(), time.Now())
+
+	if err != nil {
+		return fmt.Errorf("failed to create job: %w", err)
+	}
 
 	return nil
 }
@@ -75,7 +80,7 @@ func (j *JobStore) ClaimNextPendingJob(ctx context.Context) (*Job, error) {
 
 	var job Job
 
-	// not sure why chatgpt has .Scan for var job...I'd think at this stage you'd simply query the jobs table for the latest job with a status of pending...
+	// TODO: After completion, look to see which columns are no longer needed here.
 	err = tx.QueryRow(ctx, `
 		SELECT
 			id,
