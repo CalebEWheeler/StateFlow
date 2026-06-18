@@ -1,22 +1,22 @@
 package shared
 
 type OrderRequestBody struct {
+	Address    Address `json:"address"`
+	Currency   string  `json:"currency"`
 	CustomerID string  `json:"customer_id"`
 	Email      string  `json:"email"`
-	Address    Address `json:"address"`
 	Items      []Item  `json:"items"`
-	Currency   string  `json:"currency"`
 }
 
 type Address struct {
-	Street  string `json:"street"`
-	City    string `json:"city"`
-	State   string `json:"state"`
-	Country string `json:"country"`
+	AdministrativeArea string `json:"administrative_area"`
+	City               string `json:"city"`
+	Country            string `json:"country"`
+	Street             string `json:"street"`
 }
 
 type Item struct {
 	ID       string `json:"id"`
-	SKU      string `json:"sku"`
 	Quantity int    `json:"quantity"`
+	SKU      string `json:"sku"`
 }

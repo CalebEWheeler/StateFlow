@@ -29,21 +29,21 @@ func (o *OrderStore) CreateOrder(ctx context.Context, job *Job) error {
 	_, err := o.pool.Exec(ctx, `
 		INSERT INTO orders (
 			id,
+			address,
+			currency,
 			customer_id,
 			email,
-			address,
 			items,
-			currency,
 			created_at,
 			updated_at
 		) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
 	`,
 		uuid.New(),
+		req.Address,
+		req.Currency,
 		req.CustomerID,
 		req.Email,
-		req.Address,
 		req.Items,
-		req.Currency,
 		time.Now(),
 		time.Now(),
 	)

@@ -39,18 +39,18 @@ func main() {
 		status VARCHAR(20) NOT NULL,
 		retry_count INT NOT NULL DEFAULT 0,
 		last_error TEXT,
-		payload JSONB,
+		payload JSONB NOT NULL,
 		created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 		updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 	);`)
 	conn.Pool.Exec(context.Background(), `CREATE TABLE IF NOT EXISTS orders
 	(
 		id uuid PRIMARY KEY NOT NULL, 
-		customer_id VARCHAR(50) NOT NULL,
-		email VARCHAR(255) UNIQUE NOT NULL,
-		address TEXT NOT NULL,
-		items TEXT NOT NULL,
+		address JSONB NOT NULL,
 		currency VARCHAR(10) NOT NULL,
+		customer_id VARCHAR(50) NOT NULL,
+		email VARCHAR(255) NOT NULL,
+		items JSONB NOT NULL,
 		created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 		updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 	);`)
