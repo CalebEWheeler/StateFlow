@@ -35,11 +35,12 @@ func main() {
 	(
 		id UUID PRIMARY KEY,
 		workflow_id UUID NOT NULL,
+		order_id UUID,
 		step VARCHAR(50) NOT NULL,
 		status VARCHAR(20) NOT NULL,
 		retry_count INT NOT NULL DEFAULT 0,
 		last_error TEXT,
-		payload JSONB NOT NULL,
+		payload JSONB,
 		created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 		updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 	);`)
@@ -61,6 +62,31 @@ func main() {
 		last_name VARCHAR(50) NOT NULL, 
 		email VARCHAR(255) UNIQUE NOT NULL
 	);`)
+	conn.Pool.Exec(context.Background(), `CREATE TABLE IF NOT EXISTS inventory
+	(
+		id VARCHAR(255) PRIMARY KEY NOT NULL,
+		sku VARCHAR(50) UNIQUE NOT NULL,
+		quantity INT NOT NULL,
+		msrp NUMERIC(10,2) NOT NULL,
+		price NUMERIC(10,2) NOT NULL,
+		created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+		updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+	);`)
+	conn.Pool.Exec(context.Background(), `INSERT INTO inventory (
+			id,
+			sku,
+			quantity,
+			msrp,
+			price
+	)
+	VALUES
+		(1234567890, 'ABC123', 100, 29.99, 24.99),
+		(0987654321, 'DEF456', 50, 49.99, 39.99),
+		(1234509876, 'GHI789', 25, 99.99, 89.99),
+		(0987612345, 'JKL012', 10, 199.99, 179.99),
+		(1256903478, 'MNO345', 500, 9.99, 7.99)
+	ON CONFLICT (sku) DO NOTHING;
+	`)
 
 	// Initialize store
 	store := postgres.NewStore(conn.Pool)

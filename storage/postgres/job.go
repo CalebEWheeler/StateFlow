@@ -20,6 +20,7 @@ type JobStore struct {
 type Job struct {
 	ID         uuid.UUID
 	WorkflowID uuid.UUID
+	OrderID    uuid.UUID
 	// Can add these steps as a bonus: retry_failed_job, cancel_order, reconcile_order
 	Step       string `oneOf:"create_order,reserve_inventory,charge_payment,create_shipment,send_email"`
 	Status     string `oneOf:"pending,completed,failed"`
@@ -50,7 +51,7 @@ func (j *JobStore) Complete(ctx context.Context, id uuid.UUID) error {
 	return nil
 }
 
-func (js *JobStore) CreateJob(ctx context.Context, workflowID uuid.UUID, payload interface{}) error {
+func (js *JobStore) CreateJob(ctx context.Context, job Job) error {
 	_, err := js.pool.Exec(context.Background(), `INSERT INTO jobs (
 		id, 
 		workflow_id,
@@ -59,7 +60,7 @@ func (js *JobStore) CreateJob(ctx context.Context, workflowID uuid.UUID, payload
 		payload,
 		created_at,
 		updated_at
-	) VALUES ($1, $2, $3, $4, $5, $6, $7)`, uuid.New(), workflowID, "create_order", "pending", payload, time.Now(), time.Now())
+	) VALUES ($1, $2, $3, $4, $5, $6, $7)`, uuid.New(), job.WorkflowID, job.Step, "pending", job.Payload, time.Now(), time.Now())
 
 	if err != nil {
 		return fmt.Errorf("failed to create job: %w", err)
@@ -78,6 +79,7 @@ func (j *JobStore) ClaimNextPendingJob(ctx context.Context) (*Job, error) {
 	// Discards all changes made since the Begin statement and restores DB to previous state.
 	defer tx.Rollback(ctx)
 
+	// TODO: move to global variables...
 	var job Job
 
 	// TODO: After completion, look to see which columns are no longer needed here.

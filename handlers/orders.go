@@ -58,7 +58,13 @@ func (h *OrderHandler) Handle(ctx context.Context, input *OrderRequest) (*OrderR
 	if err != nil {
 		return &OrderResponse{}, err
 	}
-	h.store.Job.CreateJob(ctx, workflowID, payload)
+
+	h.store.Job.CreateJob(ctx, postgres.Job{
+		OrderID:    uuid.New(),
+		Payload:    payload,
+		Step:       "create_order",
+		WorkflowID: workflowID,
+	})
 
 	return &OrderResponse{}, nil
 }

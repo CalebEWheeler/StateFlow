@@ -16,7 +16,9 @@ type Address struct {
 }
 
 type Item struct {
-	ID       string `json:"id"`
-	Quantity int    `json:"quantity"`
-	SKU      string `json:"sku"`
+	ID       string  `json:"id"`
+	Quantity int     `json:"quantity"`
+	SKU      string  `json:"sku"`
+	MSRP     float64 `json:"msrp"`
+	Price    float64 `json:"price"`
 }

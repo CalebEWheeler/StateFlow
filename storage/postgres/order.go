@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/CalebEWheeler/StateFlow/shared"
-	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -38,7 +37,7 @@ func (o *OrderStore) CreateOrder(ctx context.Context, job *Job) error {
 			updated_at
 		) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
 	`,
-		uuid.New(),
+		job.OrderID,
 		req.Address,
 		req.Currency,
 		req.CustomerID,

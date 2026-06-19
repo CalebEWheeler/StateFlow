@@ -5,15 +5,19 @@ import (
 )
 
 type Store struct {
-	Job      JobStore
-	Order    OrderStore
-	Workflow WorkflowStore
+	Inventory InventoryStore
+	Job       JobStore
+	Order     OrderStore
+	Shipments ShipmentStore
+	Workflow  WorkflowStore
 }
 
 func NewStore(pool *pgxpool.Pool) *Store {
 	return &Store{
-		Job:      *NewJobStore(pool),
-		Order:    *NewOrderStore(pool),
-		Workflow: *NewWorkflowStore(pool),
+		Inventory: *NewInventoryStore(pool),
+		Job:       *NewJobStore(pool),
+		Order:     *NewOrderStore(pool),
+		Shipments: *NewShipmentStore(pool),
+		Workflow:  *NewWorkflowStore(pool),
 	}
 }
