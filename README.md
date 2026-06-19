@@ -86,6 +86,7 @@ Planned Extensions
 
 ### High-Level Flow
 
+```
 POST /order
     ↓
 Create Workflow
@@ -99,3 +100,4 @@ Execute Step
 Create Next Job
     ↓
 Workflow Complete
+```
