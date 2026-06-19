@@ -79,11 +79,6 @@ func (w *Worker) ProcessJob(ctx context.Context, job *postgres.Job) error {
 		}
 		return nil
 	case "reserve_inventory":
-		// Update inventory table
-		// 1. GET items data by orderID from 'orders' table
-		// 2. UPDATE inventory quantity for each item from 'orders' table
-		// 3. step := "create_shipment"
-		// 4. create new job...
 		err := w.ReserveInventory(ctx, job)
 		if err != nil {
 			return err
@@ -98,7 +93,6 @@ func (w *Worker) ProcessJob(ctx context.Context, job *postgres.Job) error {
 		}
 		return nil
 	case "create_shipment":
-		//
 
 		// step := "send_confirmation"
 		// if err = w.store.Job.CreateJob(ctx, job.WorkflowID, step, orderID); err != nil {

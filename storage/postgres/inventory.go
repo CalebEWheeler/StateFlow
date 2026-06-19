@@ -30,8 +30,7 @@ func (is InventoryStore) ReserveInventory(ctx context.Context, job *Job) error {
 	}
 
 	defer tx.Rollback(ctx)
-	// 1. GET items data by orderID from 'orders' table
-	// 2. UPDATE inventory quantity for each item from 'orders' table
+
 	err = tx.QueryRow(ctx, `
 		SELECT 
 			items 

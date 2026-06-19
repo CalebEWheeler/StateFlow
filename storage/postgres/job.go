@@ -11,7 +11,10 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-var ErrNoJobs = errors.New("no pending jobs")
+var (
+	ErrNoJobs = errors.New("no pending jobs")
+	job       Job
+)
 
 type JobStore struct {
 	pool *pgxpool.Pool
@@ -78,9 +81,6 @@ func (j *JobStore) ClaimNextPendingJob(ctx context.Context) (*Job, error) {
 
 	// Discards all changes made since the Begin statement and restores DB to previous state.
 	defer tx.Rollback(ctx)
-
-	// TODO: move to global variables...
-	var job Job
 
 	// TODO: After completion, look to see which columns are no longer needed here.
 	err = tx.QueryRow(ctx, `
