@@ -46,7 +46,7 @@ func main() {
 	);`)
 	conn.Pool.Exec(context.Background(), `CREATE TABLE IF NOT EXISTS orders
 	(
-		id uuid PRIMARY KEY NOT NULL, 
+		id UUID PRIMARY KEY, 
 		address JSONB NOT NULL,
 		currency VARCHAR(10) NOT NULL,
 		customer_id VARCHAR(50) NOT NULL,
@@ -57,14 +57,14 @@ func main() {
 	);`)
 	conn.Pool.Exec(context.Background(), `CREATE TABLE IF NOT EXISTS users
 	(
-		id uuid PRIMARY KEY NOT NULL, 
+		id UUID PRIMARY KEY, 
 		first_name VARCHAR(50) NOT NULL, 
 		last_name VARCHAR(50) NOT NULL, 
 		email VARCHAR(255) UNIQUE NOT NULL
 	);`)
 	conn.Pool.Exec(context.Background(), `CREATE TABLE IF NOT EXISTS inventory
 	(
-		id VARCHAR(255) PRIMARY KEY NOT NULL,
+		id VARCHAR(255) PRIMARY KEY,
 		sku VARCHAR(50) UNIQUE NOT NULL,
 		quantity INT NOT NULL,
 		msrp NUMERIC(10,2) NOT NULL,
@@ -73,11 +73,11 @@ func main() {
 		updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 	);`)
 	conn.Pool.Exec(context.Background(), `INSERT INTO inventory (
-			id,
-			sku,
-			quantity,
-			msrp,
-			price
+		id,
+		sku,
+		quantity,
+		msrp,
+		price
 	)
 	VALUES
 		(1234567890, 'ABC123', 100, 29.99, 24.99),
@@ -87,6 +87,15 @@ func main() {
 		(1256903478, 'MNO345', 500, 9.99, 7.99)
 	ON CONFLICT (sku) DO NOTHING;
 	`)
+	conn.Pool.Exec(context.Background(), `CREATE TABLE IF NOT EXISTS shipments (
+		id UUID PRIMARY KEY,
+		order_id UUID NOT NULL,
+		tracking_number VARCHAR(100) NOT NULL,
+		carrier VARCHAR(50) NOT NULL,
+		status VARCHAR(20) NOT NULL,
+		created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+		updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+	)`)
 
 	// Initialize store
 	store := postgres.NewStore(conn.Pool)
