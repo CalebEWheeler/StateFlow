@@ -8,7 +8,7 @@ type Store struct {
 	Inventory InventoryStore
 	Job       JobStore
 	Order     OrderStore
-	Shipments ShipmentStore
+	Shipment  ShipmentStore
 	Workflow  WorkflowStore
 }
 
@@ -17,7 +17,7 @@ func NewStore(pool *pgxpool.Pool) *Store {
 		Inventory: *NewInventoryStore(pool),
 		Job:       *NewJobStore(pool),
 		Order:     *NewOrderStore(pool),
-		Shipments: *NewShipmentStore(pool),
+		Shipment:  *NewShipmentStore(pool),
 		Workflow:  *NewWorkflowStore(pool),
 	}
 }
