@@ -24,6 +24,7 @@ type Job struct {
 	ID         uuid.UUID
 	WorkflowID uuid.UUID
 	OrderID    uuid.UUID
+	ShipmentID uuid.UUID
 	// Can add these steps as a bonus: retry_failed_job, cancel_order, reconcile_order
 	Step       string `oneOf:"create_order,reserve_inventory,charge_payment,create_shipment,send_email"`
 	Status     string `oneOf:"pending,completed,failed"`
@@ -58,12 +59,22 @@ func (js *JobStore) CreateJob(ctx context.Context, job Job) error {
 	_, err := js.pool.Exec(context.Background(), `INSERT INTO jobs (
 		id, 
 		workflow_id,
+		order_id,
 		step,
 		status,
 		payload,
 		created_at,
 		updated_at
-	) VALUES ($1, $2, $3, $4, $5, $6, $7)`, uuid.New(), job.WorkflowID, job.Step, "pending", job.Payload, time.Now(), time.Now())
+	) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+		uuid.New(),
+		job.WorkflowID,
+		job.OrderID,
+		job.Step,
+		"pending",
+		job.Payload,
+		time.Now(),
+		time.Now(),
+	)
 
 	if err != nil {
 		return fmt.Errorf("failed to create job: %w", err)
@@ -87,6 +98,8 @@ func (j *JobStore) ClaimNextPendingJob(ctx context.Context) (*Job, error) {
 		SELECT
 			id,
 			workflow_id,
+			order_id,
+			shipment_id,
 			step,
 			status,
 			retry_count,
@@ -102,6 +115,8 @@ func (j *JobStore) ClaimNextPendingJob(ctx context.Context) (*Job, error) {
 	`).Scan(
 		&job.ID,
 		&job.WorkflowID,
+		&job.OrderID,
+		&job.ShipmentID,
 		&job.Step,
 		&job.Status,
 		&job.RetryCount,
@@ -150,7 +165,10 @@ func (j *JobStore) Fail(ctx context.Context, id uuid.UUID, pe error) error {
 		last_error = $2,
 		updated_at = NOW()
 	WHERE id = $1
-	`, id, pe.Error())
+	`,
+		id,
+		pe.Error(),
+	)
 	if err != nil {
 		return err
 	}

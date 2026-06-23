@@ -36,6 +36,7 @@ func main() {
 		id UUID PRIMARY KEY,
 		workflow_id UUID NOT NULL,
 		order_id UUID,
+		shipment_id UUID,
 		step VARCHAR(50) NOT NULL,
 		status VARCHAR(20) NOT NULL,
 		retry_count INT NOT NULL DEFAULT 0,

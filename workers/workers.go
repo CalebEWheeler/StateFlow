@@ -93,11 +93,19 @@ func (w *Worker) ProcessJob(ctx context.Context, job *postgres.Job) error {
 		}
 		return nil
 	case "create_shipment":
+		err := w.CreateShipment(ctx, job)
+		if err != nil {
+			return err
+		}
 
-		// step := "send_confirmation"
-		// if err = w.store.Job.CreateJob(ctx, job.WorkflowID, step, orderID); err != nil {
-		// 	return err
-		// }
+		if err = w.store.Job.CreateJob(ctx, postgres.Job{
+			OrderID:    job.OrderID,
+			ShipmentID: job.ShipmentID,
+			Step:       "send_confirmation",
+			WorkflowID: job.WorkflowID,
+		}); err != nil {
+			return err
+		}
 		return nil
 	case "send_confirmation":
 		// Get email from 'orders' table
@@ -117,6 +125,13 @@ func (w *Worker) CreateOrder(ctx context.Context, job *postgres.Job) error {
 
 func (w *Worker) ReserveInventory(ctx context.Context, job *postgres.Job) error {
 	if err := w.store.Inventory.ReserveInventory(ctx, job); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (w *Worker) CreateShipment(ctx context.Context, job *postgres.Job) error {
+	if err := w.store.Shipment.CreateShipment(ctx, job); err != nil {
 		return err
 	}
 	return nil
