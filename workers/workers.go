@@ -108,8 +108,10 @@ func (w *Worker) ProcessJob(ctx context.Context, job *postgres.Job) error {
 		}
 		return nil
 	case "send_confirmation":
-		// Get email from 'orders' table
-		// Build and send email
+		err := w.SendConfirmation(ctx, job)
+		if err != nil {
+			return err
+		}
 		return nil
 	default:
 		return fmt.Errorf("unknown job type: %s", job.Step)
