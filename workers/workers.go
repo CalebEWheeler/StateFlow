@@ -108,8 +108,10 @@ func (w *Worker) ProcessJob(ctx context.Context, job *postgres.Job) error {
 		}
 		return nil
 	case "send_confirmation":
-		// Get email from 'orders' table
-		// Build and send email
+		err := w.SendConfirmation(ctx, job)
+		if err != nil {
+			return err
+		}
 		return nil
 	default:
 		return fmt.Errorf("unknown job type: %s", job.Step)
@@ -123,6 +125,13 @@ func (w *Worker) CreateOrder(ctx context.Context, job *postgres.Job) error {
 	return nil
 }
 
+func (w *Worker) CreateShipment(ctx context.Context, job *postgres.Job) error {
+	if err := w.store.Shipment.CreateShipment(ctx, job); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (w *Worker) ReserveInventory(ctx context.Context, job *postgres.Job) error {
 	if err := w.store.Inventory.ReserveInventory(ctx, job); err != nil {
 		return err
@@ -130,8 +139,8 @@ func (w *Worker) ReserveInventory(ctx context.Context, job *postgres.Job) error 
 	return nil
 }
 
-func (w *Worker) CreateShipment(ctx context.Context, job *postgres.Job) error {
-	if err := w.store.Shipment.CreateShipment(ctx, job); err != nil {
+func (w *Worker) SendConfirmation(ctx context.Context, job *postgres.Job) error {
+	if err := w.store.Email.SendConfirmation(ctx, job); err != nil {
 		return err
 	}
 	return nil
