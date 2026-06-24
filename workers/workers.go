@@ -123,6 +123,13 @@ func (w *Worker) CreateOrder(ctx context.Context, job *postgres.Job) error {
 	return nil
 }
 
+func (w *Worker) CreateShipment(ctx context.Context, job *postgres.Job) error {
+	if err := w.store.Shipment.CreateShipment(ctx, job); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (w *Worker) ReserveInventory(ctx context.Context, job *postgres.Job) error {
 	if err := w.store.Inventory.ReserveInventory(ctx, job); err != nil {
 		return err
@@ -130,8 +137,8 @@ func (w *Worker) ReserveInventory(ctx context.Context, job *postgres.Job) error 
 	return nil
 }
 
-func (w *Worker) CreateShipment(ctx context.Context, job *postgres.Job) error {
-	if err := w.store.Shipment.CreateShipment(ctx, job); err != nil {
+func (w *Worker) SendConfirmation(ctx context.Context, job *postgres.Job) error {
+	if err := w.store.Email.SendConfirmation(ctx, job); err != nil {
 		return err
 	}
 	return nil

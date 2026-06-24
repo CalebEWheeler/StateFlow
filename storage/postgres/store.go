@@ -5,6 +5,7 @@ import (
 )
 
 type Store struct {
+	Email     EmailStore
 	Inventory InventoryStore
 	Job       JobStore
 	Order     OrderStore
@@ -14,6 +15,7 @@ type Store struct {
 
 func NewStore(pool *pgxpool.Pool) *Store {
 	return &Store{
+		Email:     *NewEmailStore(pool),
 		Inventory: *NewInventoryStore(pool),
 		Job:       *NewJobStore(pool),
 		Order:     *NewOrderStore(pool),
