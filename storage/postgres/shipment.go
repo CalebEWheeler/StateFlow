@@ -10,6 +10,16 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+type Shipment struct {
+	ID             uuid.UUID
+	OrderID        uuid.UUID
+	TrackingNumber string
+	Carrier        string
+	Status         string
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+}
+
 type ShipmentStore struct {
 	pool *pgxpool.Pool
 }
@@ -42,5 +52,11 @@ func (ss ShipmentStore) CreateShipment(ctx context.Context, job *Job) error {
 		return fmt.Errorf("failed to create shipment: %w", err)
 	}
 
+	return nil
+}
+
+// read from shipments table - tracking number, status, carrier
+// scan data to and return Shipment struct...
+func GetByOrderID(ctx context.Context, id uuid.UUID) error {
 	return nil
 }

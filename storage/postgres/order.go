@@ -7,8 +7,20 @@ import (
 	"time"
 
 	"github.com/CalebEWheeler/StateFlow/shared"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
+
+type Order struct {
+	ID         uuid.UUID
+	Address    shared.Address
+	Currency   string
+	CustomerID string
+	Email      string
+	Items      []shared.Item
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
+}
 
 type OrderStore struct {
 	pool *pgxpool.Pool
@@ -51,5 +63,11 @@ func (o *OrderStore) CreateOrder(ctx context.Context, job *Job) error {
 		return fmt.Errorf("failed to create order: %w", err)
 	}
 
+	return nil
+}
+
+// read from orders table - email address, address, items, order_id
+// scan data to and return Order struct...
+func (o OrderStore) GetByID(ctx context.Context, id uuid.UUID) error {
 	return nil
 }
