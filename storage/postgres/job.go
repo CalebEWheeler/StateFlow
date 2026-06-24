@@ -4,12 +4,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
+
+const maxRetries = 3
 
 var (
 	ErrNoJobs = errors.New("no pending jobs")
@@ -155,18 +158,35 @@ func (j *JobStore) ClaimNextPendingJob(ctx context.Context) (*Job, error) {
 	return &job, nil
 }
 
-// Update later on to schedule a retry after X attempts...
-func (j *JobStore) Fail(ctx context.Context, id uuid.UUID, pe error) error {
-	// on fail...update job status, and last_error columns
+func (j *JobStore) Fail(ctx context.Context, job *Job, pe error) error {
+	retryCount := job.RetryCount + 1
+	status := "pending"
+
+	if retryCount >= maxRetries {
+		status = "failed"
+	}
+
+	log.Printf(
+		"job=%s step=%s retry=%d status=%s error=%v",
+		job.ID,
+		job.Step,
+		retryCount,
+		status,
+		pe.Error(),
+	)
+
 	_, err := j.pool.Exec(ctx, `
 	UPDATE jobs
 	SET
-		status = 'failed',
-		last_error = $2,
+		status = $2,
+		retry_count = $3,
+		last_error = $4,
 		updated_at = NOW()
 	WHERE id = $1
 	`,
-		id,
+		job.ID,
+		status,
+		retryCount,
 		pe.Error(),
 	)
 	if err != nil {

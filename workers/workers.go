@@ -9,6 +9,8 @@ import (
 	"github.com/CalebEWheeler/StateFlow/storage/postgres"
 )
 
+const JobTimeout = 30
+
 type Worker struct {
 	store *postgres.Store
 }
@@ -31,11 +33,11 @@ func (w *Worker) Start(ctx context.Context) {
 			continue
 		}
 
-		err = w.ProcessJob(ctx, job)
+		err = w.process(ctx, job)
 		if err != nil {
 			if failErr := w.store.Job.Fail(
 				ctx,
-				job.ID,
+				job,
 				err,
 			); failErr != nil {
 				log.Printf(
@@ -50,7 +52,7 @@ func (w *Worker) Start(ctx context.Context) {
 		if err != nil {
 			if failErr := w.store.Job.Fail(
 				ctx,
-				job.ID,
+				job,
 				fmt.Errorf("failed to complete job: %w", err),
 			); failErr != nil {
 				log.Printf(
@@ -60,6 +62,16 @@ func (w *Worker) Start(ctx context.Context) {
 			}
 		}
 	}
+}
+
+func (w *Worker) process(ctx context.Context, job *postgres.Job) error {
+	jobCtx, cancel := context.WithTimeout(
+		ctx,
+		JobTimeout*time.Second,
+	)
+	defer cancel()
+
+	return w.ProcessJob(jobCtx, job)
 }
 
 func (w *Worker) ProcessJob(ctx context.Context, job *postgres.Job) error {
