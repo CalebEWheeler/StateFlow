@@ -11,8 +11,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-// const maxRetries = 3
-
 var (
 	ErrNoJobs = errors.New("no pending jobs")
 	job       Job
