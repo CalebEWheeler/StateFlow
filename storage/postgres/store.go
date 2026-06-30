@@ -1,6 +1,9 @@
 package postgres
 
 import (
+	"context"
+	"fmt"
+
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -13,7 +16,26 @@ type Store struct {
 	Workflow  WorkflowStore
 }
 
-func NewStore(pool *pgxpool.Pool) *Store {
+func NewStore(ctx context.Context, url string) (*Store, error) {
+	pool, err := pgxpool.New(context.Background(), url)
+	if err != nil {
+		return nil, fmt.Errorf("create pool: %w", err)
+	}
+
+	// verify connection actually works
+	if err := pool.Ping(ctx); err != nil {
+		pool.Close()
+		return nil, fmt.Errorf("ping db: %w", err)
+	}
+
+	if err := createTables(pool); err != nil {
+		return nil, err
+	}
+
+	if err := seedTables(pool); err != nil {
+		return nil, err
+	}
+
 	return &Store{
 		Email:     *NewEmailStore(pool),
 		Inventory: *NewInventoryStore(pool),
@@ -21,5 +43,5 @@ func NewStore(pool *pgxpool.Pool) *Store {
 		Order:     *NewOrderStore(pool),
 		Shipment:  *NewShipmentStore(pool),
 		Workflow:  *NewWorkflowStore(pool),
-	}
+	}, nil
 }
