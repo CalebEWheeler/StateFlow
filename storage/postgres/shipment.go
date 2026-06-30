@@ -10,6 +10,10 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+const (
+	StatusLabelCreated string = "label_created"
+)
+
 type ShipmentStore struct {
 	pool *pgxpool.Pool
 }
@@ -33,7 +37,7 @@ func (ss ShipmentStore) CreateShipment(ctx context.Context, job *Job) error {
 		fmt.Sprintf("SF-%s",
 			strings.ToUpper(uuid.New().String()[:8])),
 		"UPS",
-		"label_created",
+		StatusLabelCreated,
 		time.Now(),
 		time.Now(),
 	)

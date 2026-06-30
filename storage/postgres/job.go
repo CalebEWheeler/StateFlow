@@ -4,15 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
-
-const maxRetries = 3
 
 var (
 	ErrNoJobs = errors.New("no pending jobs")
@@ -46,10 +43,10 @@ func (j *JobStore) Complete(ctx context.Context, id uuid.UUID) error {
 	_, err := j.pool.Exec(ctx, `
 	UPDATE jobs
 	SET 
-		status = 'completed',
+		status = $2,
 		updated_at = NOW()
 	WHERE id = $1
-	`, id)
+	`, id, StatusComplete)
 
 	if err != nil {
 		return err
@@ -111,11 +108,11 @@ func (j *JobStore) ClaimNextPendingJob(ctx context.Context) (*Job, error) {
 			created_at,
 			updated_at
 		FROM jobs
-		WHERE status = 'pending'
+		WHERE status = $1
 		ORDER BY created_at ASC
 		LIMIT 1
 		FOR UPDATE SKIP LOCKED
-	`).Scan(
+	`, StatusPending).Scan(
 		&job.ID,
 		&job.WorkflowID,
 		&job.OrderID,
@@ -140,16 +137,16 @@ func (j *JobStore) ClaimNextPendingJob(ctx context.Context) (*Job, error) {
 	_, err = tx.Exec(ctx, `
 	UPDATE jobs
 	SET 
-		status = 'running',
+		status = $1,
 		updated_at = NOW()
-	WHERE id = $1
-	`, job.ID)
+	WHERE id = $2
+	`, StatusRunning, job.ID)
 
 	if err != nil {
 		return nil, err
 	}
 
-	job.Status = "running"
+	job.Status = StatusRunning
 
 	if err := tx.Commit(ctx); err != nil {
 		return nil, err
@@ -159,38 +156,22 @@ func (j *JobStore) ClaimNextPendingJob(ctx context.Context) (*Job, error) {
 }
 
 func (j *JobStore) Fail(ctx context.Context, job *Job, pe error) error {
-	retryCount := job.RetryCount + 1
-	status := "pending"
-
-	if retryCount >= maxRetries {
-		status = "failed"
-	}
-
-	log.Printf(
-		"job=%s step=%s retry=%d status=%s error=%v",
-		job.ID,
-		job.Step,
-		retryCount,
-		status,
-		pe.Error(),
-	)
-
 	_, err := j.pool.Exec(ctx, `
 	UPDATE jobs
 	SET
-		status = $2,
-		retry_count = $3,
-		last_error = $4,
+		status = $1,
+		retry_count = $2,
+		last_error = $3,
 		updated_at = NOW()
-	WHERE id = $1
+	WHERE id = $4
 	`,
-		job.ID,
-		status,
-		retryCount,
+		job.Status,
+		job.RetryCount,
 		pe.Error(),
+		job.ID,
 	)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to mark job %s failed: %w", job.ID, err)
 	}
 
 	return nil
