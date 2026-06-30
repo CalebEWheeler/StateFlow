@@ -5,14 +5,12 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/CalebEWheeler/StateFlow/connections"
 	"github.com/CalebEWheeler/StateFlow/shared"
 	"github.com/CalebEWheeler/StateFlow/storage/postgres"
 	"github.com/google/uuid"
 )
 
 type OrderHandler struct {
-	db    *connections.DB
 	store *postgres.Store
 }
 
@@ -40,9 +38,8 @@ type OrderRequest struct {
 
 type OrderResponse struct{}
 
-func NewOrderHandler(conn *connections.DB, store *postgres.Store) *OrderHandler {
+func NewOrderHandler(store *postgres.Store) *OrderHandler {
 	return &OrderHandler{
-		db:    conn,
 		store: store,
 	}
 }
