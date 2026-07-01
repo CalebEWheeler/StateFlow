@@ -8,7 +8,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/CalebEWheeler/StateFlow/internal/servers"
+	"github.com/CalebEWheeler/StateFlow/servers"
 	"github.com/CalebEWheeler/StateFlow/storage/postgres"
 	"github.com/CalebEWheeler/StateFlow/workers"
 )
