@@ -24,6 +24,7 @@ func New() App {
 	}
 }
 
+// more logs for steps...
 func (a App) Run() error {
 	log.Infof("starting %s", a.Config.Name)
 	ctx, stop := signal.NotifyContext(
@@ -34,17 +35,19 @@ func (a App) Run() error {
 	defer stop()
 
 	// Initialize store
-	// Can move URL to env var
+	log.Info("starting new store...")
 	store, err := postgres.NewStore(ctx, a.Config.PostgresURL)
 	if err != nil {
 		panic(err)
 	}
 
 	// Initialize workers...
+	log.Info("initializing worker engine...")
 	worker := workers.NewWorker(store)
 	go worker.Start(ctx)
 
 	// Create Router and register endpoints with handlers...
+	log.Info("initializing server...")
 	server := servers.New(store)
 
 	if err := server.Start(); err != nil {
@@ -61,11 +64,11 @@ func (a App) Run() error {
 		defer cancel()
 
 		if err := server.Stop(shutdownCtx); err != nil {
-			log.Printf("failed to shutdown server: %v", err)
+			log.Errorf("failed to shutdown server: %v", err)
 		}
 	}()
 
-	log.Println("starting server...")
+	log.Info("starting server...")
 
 	if err := server.Start(); err != nil {
 		log.Fatal(err)
