@@ -30,7 +30,10 @@ func (a App) Run() error {
 	ctx, stop := signal.NotifyContext(
 		context.Background(),
 		os.Interrupt,
+		syscall.SIGHUP,
+		syscall.SIGINT,
 		syscall.SIGTERM,
+		syscall.SIGQUIT,
 	)
 	defer stop()
 
@@ -38,41 +41,32 @@ func (a App) Run() error {
 	log.Info("starting new store...")
 	store, err := postgres.NewStore(ctx, a.Config.PostgresURL)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
-	// Initialize workers...
+	// Initialize worker engine
 	log.Info("initializing worker engine...")
 	worker := workers.NewWorker(store)
 	go worker.Start(ctx)
 
-	// Create Router and register endpoints with handlers...
+	// Create Server, Router and register endpoints with handlers
 	log.Info("initializing server...")
 	server := servers.New(store)
 
-	if err := server.Start(); err != nil {
-		log.Fatal(err)
-	}
+	server.Start(ctx)
 
-	go func() {
-		<-ctx.Done()
+	// Wait until context is cancelled
+	<-ctx.Done()
 
-		shutdownCtx, cancel := context.WithTimeout(
-			ctx,
-			a.Config.GracefulExitTimeout,
-		)
-		defer cancel()
+	log.Info("application shutting down")
 
-		if err := server.Stop(shutdownCtx); err != nil {
-			log.Errorf("failed to shutdown server: %v", err)
-		}
-	}()
+	shutdownCtx, shutdownCancel := context.WithTimeout(
+		ctx,
+		a.Config.GracefulExitTimeout,
+	)
+	defer shutdownCancel()
 
-	log.Info("starting server...")
-
-	if err := server.Start(); err != nil {
-		log.Fatal(err)
-	}
+	server.Stop(shutdownCtx)
 
 	return nil
 }

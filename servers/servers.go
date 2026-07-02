@@ -2,6 +2,7 @@ package servers
 
 import (
 	"context"
+	"net"
 	"net/http"
 
 	"github.com/CalebEWheeler/StateFlow/handlers"
@@ -10,6 +11,7 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humachi"
 	"github.com/go-chi/chi/v5"
+	log "github.com/sirupsen/logrus"
 )
 
 type Server struct {
@@ -39,10 +41,22 @@ func New(store *postgres.Store) *Server {
 	}
 }
 
-func (s *Server) Start() error {
-	return s.server.ListenAndServe()
+func (s *Server) Start(ctx context.Context) {
+	log.Infof("starting server (%s)", s.server.Addr)
+	s.server.BaseContext = func(_ net.Listener) context.Context { return ctx }
+
+	go func() {
+		if err := s.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Error(err)
+		}
+	}()
+	log.Info("started all servers")
 }
 
-func (s *Server) Stop(ctx context.Context) error {
-	return s.server.Shutdown(ctx)
+func (s *Server) Stop(ctx context.Context) {
+	log.Info("stopping all servers")
+	if err := s.server.Shutdown(ctx); err != nil {
+		log.Warn("Error shutting down server: ", err)
+	}
+	log.Info("Done stopping all servers")
 }
