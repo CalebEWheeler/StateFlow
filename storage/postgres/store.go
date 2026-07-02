@@ -8,6 +8,8 @@ import (
 )
 
 type Store struct {
+	pool *pgxpool.Pool
+
 	Email     EmailStore
 	Inventory InventoryStore
 	Job       JobStore
@@ -44,4 +46,8 @@ func NewStore(ctx context.Context, url string) (*Store, error) {
 		Shipment:  *NewShipmentStore(pool),
 		Workflow:  *NewWorkflowStore(pool),
 	}, nil
+}
+
+func (s *Store) Close() {
+	s.pool.Close()
 }

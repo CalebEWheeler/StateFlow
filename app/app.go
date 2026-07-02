@@ -43,6 +43,7 @@ func (a App) Run() error {
 	if err != nil {
 		return err
 	}
+	defer store.Close()
 
 	// Initialize worker engine
 	log.Info("initializing worker engine...")
@@ -61,7 +62,7 @@ func (a App) Run() error {
 	log.Info("application shutting down")
 
 	shutdownCtx, shutdownCancel := context.WithTimeout(
-		ctx,
+		context.Background(),
 		a.Config.GracefulExitTimeout,
 	)
 	defer shutdownCancel()
