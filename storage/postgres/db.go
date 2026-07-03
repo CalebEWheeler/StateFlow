@@ -50,16 +50,6 @@ func createTables(pool *pgxpool.Pool) error {
 		return fmt.Errorf("failed to create orders table: %w", err)
 	}
 
-	if _, err := pool.Exec(context.Background(), `CREATE TABLE IF NOT EXISTS users
-	(
-		id UUID PRIMARY KEY, 
-		first_name VARCHAR(50) NOT NULL, 
-		last_name VARCHAR(50) NOT NULL, 
-		email VARCHAR(255) UNIQUE NOT NULL
-	);`); err != nil {
-		return fmt.Errorf("failed to create users table: %w", err)
-	}
-
 	if _, err := pool.Exec(context.Background(), `CREATE TABLE IF NOT EXISTS inventory
 	(
 		id VARCHAR(255) PRIMARY KEY,
