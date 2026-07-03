@@ -2,9 +2,7 @@ package app
 
 import (
 	"context"
-	"os"
 	"os/signal"
-	"syscall"
 
 	"github.com/CalebEWheeler/StateFlow/configs"
 	"github.com/CalebEWheeler/StateFlow/servers"
@@ -29,11 +27,7 @@ func (a App) Run() error {
 	log.Infof("starting %s", a.Config.Name)
 	ctx, stop := signal.NotifyContext(
 		context.Background(),
-		os.Interrupt,
-		syscall.SIGHUP,
-		syscall.SIGINT,
-		syscall.SIGTERM,
-		syscall.SIGQUIT,
+		a.Config.ExitSignals...,
 	)
 	defer stop()
 
