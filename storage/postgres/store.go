@@ -39,6 +39,7 @@ func NewStore(ctx context.Context, url string) (*Store, error) {
 	}
 
 	return &Store{
+		pool:      pool,
 		Email:     *NewEmailStore(pool),
 		Inventory: *NewInventoryStore(pool),
 		Job:       *NewJobStore(pool),
