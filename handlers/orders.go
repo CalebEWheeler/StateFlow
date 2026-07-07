@@ -36,7 +36,15 @@ type OrderRequest struct {
 	Body shared.OrderRequestBody `json:"body"`
 }
 
-type OrderResponse struct{}
+type OrderResponse struct {
+	Header string `header: "My-Header"`
+	Body   orderResponseBody
+}
+
+type orderResponseBody struct {
+	Status  int    `json:"status"`
+	Message string `json:"message"`
+}
 
 func NewOrderHandler(store *postgres.Store) *OrderHandler {
 	return &OrderHandler{
@@ -63,5 +71,13 @@ func (h *OrderHandler) Handle(ctx context.Context, input *OrderRequest) (*OrderR
 		WorkflowID: workflowID,
 	})
 
-	return &OrderResponse{}, nil
+	output := &OrderResponse{
+		Header: "my-header",
+		Body: orderResponseBody{
+			Status:  201,
+			Message: "created order",
+		},
+	}
+
+	return output, nil
 }
