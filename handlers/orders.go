@@ -64,12 +64,23 @@ func (h *OrderHandler) Handle(ctx context.Context, input *OrderRequest) (*OrderR
 		return &OrderResponse{}, err
 	}
 
-	h.store.Job.CreateJob(ctx, postgres.Job{
+	if err := h.store.Job.CreateJob(ctx, postgres.Job{
 		OrderID:    uuid.New(),
 		Payload:    payload,
 		Step:       "create_order",
 		WorkflowID: workflowID,
-	})
+	}); err != nil {
+
+		output := &OrderResponse{
+			Header: "my-header",
+			Body: orderResponseBody{
+				Status:  500,
+				Message: "failed to create order",
+			},
+		}
+
+		return output, nil
+	}
 
 	output := &OrderResponse{
 		Header: "my-header",

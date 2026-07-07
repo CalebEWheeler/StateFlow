@@ -7,10 +7,22 @@ import (
 	"github.com/CalebEWheeler/StateFlow/handlers"
 	"github.com/CalebEWheeler/StateFlow/shared"
 	"github.com/CalebEWheeler/StateFlow/storage/postgres"
+	"github.com/stretchr/testify/require"
 )
 
 func TestHandleOrder(t *testing.T) {
 	t.Parallel()
+
+	ctx := context.Background()
+	store, err := postgres.NewStore(ctx, "postgres://postgres:example@localhost:5432/stateflow")
+	if err != nil {
+		return
+	}
+
+	require.NoError(t, err)
+	defer store.Close()
+
+	oh := handlers.NewOrderHandler(store)
 
 	input := handlers.OrderRequest{
 		Body: shared.OrderRequestBody{
@@ -35,12 +47,9 @@ func TestHandleOrder(t *testing.T) {
 		},
 	}
 
-	ctx := context.Background()
-	store, err := postgres.NewStore(ctx, "postgres://postgres:example@localhost:5432/stateflow")
-	if err != nil {
-		return
-	}
+	response, err := oh.Handle(ctx, &input)
+	require.NoError(t, err)
 
-	oh := handlers.NewOrderHandler(store)
-	oh.Handle(ctx, &input)
+	require.Equal(t, 201, response.Body.Status)
+	require.Equal(t, "created order", response.Body.Message)
 }
